@@ -1,8 +1,8 @@
-'use client';
-
 import Input from '@/components/common/Input/Input';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Cookie from 'js-cookie';
+
 import Button from '@/components/common/Button/Button';
 
 import style from './style.module.scss';
@@ -13,6 +13,11 @@ import {
 	formatPhoneNumber,
 	isPhoneNumber,
 } from '@/utils/validation/isPhoneNumber';
+import { useMutation } from '@apollo/client';
+import {
+	LOGIN_BY_EMAIL_MUTATION,
+	LOGIN_BY_PHONE_MUTATION,
+} from '@/graphql/mutations/login';
 
 export default function LoginForm() {
 	const { t } = useTranslation();
@@ -23,27 +28,45 @@ export default function LoginForm() {
 
 	const [buttonActive, setButtonActive] = useState(false);
 
-	const dataTransformer = () => {
-		if (isEmail(field)) {
-			return {
-				email: field,
-				password: password,
-			};
-		}
+	const [loginByEmail, requestEmail] = useMutation(LOGIN_BY_EMAIL_MUTATION);
+	const [loginWithPhone, requestPhone] = useMutation(LOGIN_BY_PHONE_MUTATION);
 
-		return {
-			region: 'RU',
-			phoneNumber: formatPhoneNumber(field),
-			password: password,
-		};
+	const handleLogin = async () => {
+		try {
+			let response;
+			if (isEmail(field)) {
+				response = (
+					await loginByEmail({
+						variables: {
+							email: field,
+							password,
+						},
+					})
+				).data?.loginByEmail;
+			} else if (isPhoneNumber(field)) {
+				response = (
+					await loginWithPhone({
+						variables: {
+							phoneNumber: formatPhoneNumber(field, 'RU'),
+							password,
+							region: 'RU',
+						},
+					})
+				).data?.loginWithPhone;
+			}
+			Cookie.set('access_token', response['access_token']);
+			Cookie.set('refresh_token', response['refresh_token']);
+		} catch (e) {
+			console.error('Login error:', e);
+		}
 	};
 
-	const nextAction = (lastAction = () => {}) => {
+	const nextAction = () => {
 		if (stage === 0) {
 			setStage(1);
 		}
 		if (stage === 1) {
-			lastAction();
+			handleLogin();
 		}
 	};
 
