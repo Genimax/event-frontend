@@ -1,0 +1,60 @@
+@mixin animated-gradient($gradient1, $gradient2, $duration: 20s) {
+	background: $gradient1;
+	overflow: hidden;
+	z-index: 0;
+
+	&::before {
+		content: '';
+		z-index: -1;
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: $gradient2;
+		opacity: 0;
+		animation: fade $duration infinite alternate;
+	}
+
+	@keyframes fade {
+		0% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+}
+
+@mixin fades() {
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeOut {
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
+	}
+
+	animation: fadeIn 0.5s forwards;
+
+	.fadeIn {
+		animation: fadeIn 0.5s forwards;
+	}
+
+	.fadeOut {
+		animation: fadeOut 0.5s forwards;
+	}
+}

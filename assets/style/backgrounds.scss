@@ -1,0 +1,6 @@
+@import "colors";
+@import "animations";
+
+@mixin backgroundAnimated {
+  @include animated-gradient(linear-gradient(224.02deg, #111111 16.18%, #140C17 48.09%, #A01345 70.39%, #FF3A3A 82.06%), linear-gradient(194.15deg, #1F0B0B 20.13%, #450E21 31.27%, #D73434 44.73%, #140C17 69.89%));
+}

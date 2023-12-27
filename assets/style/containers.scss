@@ -1,0 +1,13 @@
+@import "./colors.scss";
+
+@mixin formContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: $primary-white;
+  border-radius: 5rem;
+  padding: 20rem 10rem;
+  height: fit-content;
+  width: fit-content;
+  min-width: 100rem;
+  min-height: 100rem;
+}

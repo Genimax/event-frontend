@@ -1,0 +1,45 @@
+@use 'sass:string';
+@import 'media';
+@import 'colors';
+
+@mixin font($fontFamily, $fontSize, $lineHeight, $fontWeight: 400) {
+	font-family: $fontFamily, sans-serif;
+	font-size: $fontSize * 1rem;
+	// Если содержит проценты, то вставляем как есть
+	@if (str-index('#{$lineHeight}', '%')) {
+		line-height: $lineHeight;
+	}
+	// Если не содержит проценты - вставляем rem
+	@else {
+		line-height: $lineHeight * 1rem;
+	}
+	font-style: normal;
+	font-weight: $fontWeight;
+	color: $primary-text;
+}
+
+// Inter
+@mixin Inter($fontSize, $lineHeight) {
+	@include font('Inter', $fontSize, $lineHeight);
+}
+
+@mixin Inter_14() {
+	@include Inter(14, 17);
+}
+
+@mixin Inter_12() {
+	@include Inter(12, 14.5);
+}
+
+// InterMedium
+@mixin InterMed($fontSize, $lineHeight) {
+	@include font('Inter', $fontSize, $lineHeight, 700);
+}
+
+@mixin InterMed_18() {
+	@include InterMed(18, 22);
+}
+
+@mixin InterMed_32() {
+	@include InterMed(32, 38);
+}

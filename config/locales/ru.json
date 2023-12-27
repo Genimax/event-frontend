@@ -1,0 +1,9 @@
+{
+	"loginTitle": "Авторизация",
+	"phoneOrEmail": "Email или номер телефона",
+	"password": "Пароль",
+	"forgotResetAccess": "Забыли? Восстановить доступ",
+	"enter": "Войти",
+	"toRegistration": "Зарегистрироваться",
+	"or": "Или"
+}

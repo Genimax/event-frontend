@@ -1,0 +1,20 @@
+@import '../../../assets/style/fontsMixins.scss';
+@import '../../../assets/style/colors.scss';
+
+.inputContainer {
+	width: 250rem;
+}
+
+.title {
+	@include Inter_14();
+	color: $primary-text;
+}
+
+.input {
+	@include Inter_12();
+	width: 100%;
+	height: 24rem;
+	border: none;
+	border-bottom: 1rem solid $secondary-grey;
+	outline: none;
+}

@@ -1,0 +1,28 @@
+@import '../../assets/style/containers';
+@import '../../assets/style/fontsMixins';
+
+.loginMainContainer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 86rem;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+
+	@media (min-width: $M) {
+		gap: 193rem;
+	}
+
+	@media (min-width: $XL) {
+		flex-direction: row;
+		gap: 266rem;
+	}
+}
+
+.logo {
+	width: 262rem;
+	height: 58rem;
+	background-repeat: no-repeat;
+	background-size: contain;
+}

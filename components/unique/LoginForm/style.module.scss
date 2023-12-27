@@ -1,0 +1,91 @@
+@import '@/assets/style/containers';
+@import '@/assets/style/fontsMixins';
+@import '@/assets/style/animations';
+
+$margin-bottom-XL: 30rem;
+
+.authContainer {
+	@include formContainer();
+	@include fades();
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 30rem;
+
+	@media (min-width: $M) {
+		padding: 20rem 135rem;
+	}
+
+	@media (min-width: $XL) {
+		padding: 20rem 10rem;
+	}
+
+	.title {
+		@include InterMed_32();
+		color: black;
+	}
+
+	.methods {
+		width: 200rem;
+		height: 40rem;
+		display: flex;
+		gap: 40rem;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+
+		.method {
+			height: 40rem;
+			width: 40rem;
+			background-image: url('../../../assets/icons/yandex-auth.svg');
+			background-position: center center;
+			background-repeat: no-repeat;
+			background-size: 20rem;
+			border-radius: 50%;
+			box-shadow: 0 1rem 4rem 0 rgba(0, 0, 0, 0.25);
+			cursor: pointer;
+			transition: opacity 0.2s ease-out;
+		}
+
+		.method:hover {
+			opacity: 0.6;
+		}
+	}
+
+	.separator {
+		@include Inter_12();
+		width: 250rem;
+		display: flex;
+		align-items: center;
+		text-align: center;
+		color: $primary-text;
+
+		&::before,
+		&::after {
+			content: '';
+			flex: 1;
+			border-bottom: 1rem solid $primary-text;
+		}
+
+		&::before {
+			margin-right: 10rem;
+		}
+
+		&::after {
+			margin-left: 10rem;
+		}
+	}
+
+	.forgotPassword {
+		@include Inter_12();
+		width: fit-content;
+		height: fit-content;
+	}
+
+	.buttonsContainer {
+		width: 330rem;
+		display: flex;
+		flex-direction: column;
+		gap: 5rem;
+	}
+}
