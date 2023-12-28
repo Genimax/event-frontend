@@ -1,0 +1,38 @@
+@import '@/assets/style/mixins';
+
+.dashboardContainer {
+	position: absolute;
+	width: 200rem;
+	height: 250rem;
+	background-image: url('https://sun9-15.userapi.com/impg/kSAPB-pX_6LnLD09q425t8iITNLbycQ2ZlXA-g/s2xhb1ycqKI.jpg?size=343x448&quality=96&sign=0d40225ab7f3766f4aafddff0b431500&c_uniq_tag=2gJ0oCC_619-NkNXeeGgX0kCzuNDdVshXVzxRdU8Bw4&type=album');
+	background-size: cover;
+	background-repeat: no-repeat;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	border-radius: 20rem;
+	box-shadow: 0 0 10rem black;
+
+	@media (min-width: $M) {
+		width: 300rem;
+		height: 400rem;
+	}
+
+	@media (min-width: $XL) {
+		width: 350rem;
+		height: 400rem;
+	}
+
+	div {
+		width: 50%;
+		height: fit-content;
+		margin-bottom: 20rem;
+	}
+
+	@include Button();
+}

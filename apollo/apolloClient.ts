@@ -5,6 +5,7 @@ import {
 	ApolloLink,
 	concat,
 } from '@apollo/client';
+import Cookies from 'js-cookie';
 
 const httpLink = new HttpLink({
 	uri: process.env.NEXT_PUBLIC_BACKEND_URL + 'graphql/',
@@ -13,7 +14,8 @@ const httpLink = new HttpLink({
 // Пример middleware для добавления токена аутентификации в запросы
 const authMiddleware = new ApolloLink((operation, forward) => {
 	// Получите токен из localStorage или другого хранилища
-	const token = localStorage.getItem('token');
+
+	const token = Cookies.get()['access_token'];
 
 	// Добавьте заголовок авторизации к запросу, если токен существует
 	operation.setContext({

@@ -10,8 +10,8 @@ export default function Button({
 	submit = false,
 }: {
 	text: string;
-	type: string;
-	onClick: () => void;
+	type: 'primary-orange' | 'secondary-orange';
+	onClick?: () => void;
 	href?: string;
 	disabled?: boolean;
 	submit?: boolean;

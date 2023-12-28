@@ -1,7 +1,6 @@
 import Input from '@/components/common/Input/Input';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Cookie from 'js-cookie';
 
 import Button from '@/components/common/Button/Button';
 
@@ -18,8 +17,11 @@ import {
 	LOGIN_BY_EMAIL_MUTATION,
 	LOGIN_BY_PHONE_MUTATION,
 } from '@/graphql/mutations/login';
+import { saveNewTokens } from '@/utils/saveNewTokens';
+import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
+	const router = useRouter();
 	const { t } = useTranslation();
 	const [stage, setStage] = useState(0);
 
@@ -54,8 +56,8 @@ export default function LoginForm() {
 					})
 				).data?.loginWithPhone;
 			}
-			Cookie.set('access_token', response['access_token']);
-			Cookie.set('refresh_token', response['refresh_token']);
+			saveNewTokens(response);
+			router.push('/dashboard');
 		} catch (e) {
 			console.error('Login error:', e);
 		}
@@ -79,12 +81,11 @@ export default function LoginForm() {
 
 	return (
 		<form
+			autoComplete="true"
 			className={style.authContainer}
-			onKeyDown={e => {
-				if (e.key === 'Enter' && buttonActive) {
-					e.preventDefault();
-					nextAction();
-				}
+			onSubmit={event => {
+				event.preventDefault();
+				if (buttonActive) nextAction();
 			}}
 		>
 			<h1 className={style.title}>{t('loginTitle')}</h1>
@@ -121,8 +122,8 @@ export default function LoginForm() {
 				<Button
 					text={t('enter')}
 					submit={stage === 1}
-					type="primary-orange"
 					onClick={nextAction}
+					type="primary-orange"
 					disabled={!buttonActive}
 				/>
 				<Button
