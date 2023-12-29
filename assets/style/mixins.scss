@@ -4,6 +4,7 @@
 @mixin Button() {
 	.button {
 		@include InterMed_18();
+		text-align: center;
 		width: 100%;
 		height: 100%;
 		border-radius: 10rem;
@@ -14,6 +15,7 @@
 		background: $primary-orange-button;
 		overflow: hidden;
 		transition: opacity 0.2s ease-out;
+		text-decoration: none;
 	}
 
 	.button:disabled {

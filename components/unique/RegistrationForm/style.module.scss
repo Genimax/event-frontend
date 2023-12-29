@@ -24,8 +24,7 @@ $margin-bottom-XL: 30rem;
 	}
 
 	.title {
-		@include InterMed_32();
-		text-align: center;
+		@include InterMed_18();
 		width: 251rem;
 		color: black;
 		margin-bottom: 30rem;
@@ -84,19 +83,12 @@ $margin-bottom-XL: 30rem;
 		}
 	}
 
-	input {
+	.inputContainer {
 		margin-bottom: 30rem;
 		display: flex;
 		flex-direction: column;
 		gap: 10rem;
 		height: fit-content;
-	}
-
-	.forgotPassword {
-		@include Inter_12();
-		width: fit-content;
-		height: fit-content;
-		margin-bottom: 30rem;
 	}
 
 	.buttonsContainer {

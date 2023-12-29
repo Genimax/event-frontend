@@ -1,9 +1,14 @@
 {
 	"loginTitle": "Авторизация",
+	"registrationFormTitle": "Зарегистрируйтесь для доступа к новому",
 	"phoneOrEmail": "Email или номер телефона",
+	"phoneNumber": "Номер телефона",
 	"password": "Пароль",
+	"repeatPassword": "Повторите пароль",
 	"forgotResetAccess": "Забыли? Восстановить доступ",
 	"enter": "Войти",
+	"haveAnAccountEnter": "Есть аккаунт? Войти",
 	"toRegistration": "Зарегистрироваться",
-	"or": "Или"
+	"or": "Или",
+	"emailAddress": "Адрес электронной почты"
 }

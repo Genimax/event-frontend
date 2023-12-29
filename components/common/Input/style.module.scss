@@ -18,3 +18,14 @@
 	border-bottom: 1rem solid $secondary-grey;
 	outline: none;
 }
+
+.error {
+	p {
+		color: red;
+	}
+
+	input {
+		color: red;
+		border-color: red;
+	}
+}

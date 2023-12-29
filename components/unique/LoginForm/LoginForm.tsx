@@ -129,7 +129,7 @@ export default function LoginForm() {
 				<Button
 					text={t('toRegistration')}
 					type="secondary-orange"
-					onClick={() => {}}
+					onClick={() => router.push('/registration')}
 				/>
 			</div>
 		</form>
