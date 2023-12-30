@@ -75,10 +75,6 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
-        env:
-          NEXT_PUBLIC_BACKEND_URL: ${{secrets.NEXT_PUBLIC_BACKEND_URL}}
-          NEXT_PUBLIC_ACCESS_TOKEN_LIFETIME: ${{secrets.NEXT_PUBLIC_ACCESS_TOKEN_LIFETIME}}
-          NEXT_PUBLIC_REFRESH_TOKEN_LIFETIME: ${{secrets.NEXT_PUBLIC_REFRESH_TOKEN_LIFETIME}}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -89,7 +85,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
     needs: build
     steps:
