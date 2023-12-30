@@ -9,6 +9,8 @@ import '../../../config/i18n';
 import SMSVerificationForm from '@/components/unique/SMSVerificationForm/SMSVerificationForm';
 import { useMutation } from '@apollo/client';
 import { REGISTRATION_REQUEST_CODE_MUTATION } from '@/graphql/mutations/registration';
+import { throttle } from '@/utils/throttle';
+import { FormLoader } from '@/components/common/FormLoader/FormLoader';
 
 export default function RegistrationForm() {
 	const router = useRouter();
@@ -38,7 +40,6 @@ export default function RegistrationForm() {
 		setError({ [field]: condition });
 	};
 
-	let lastRequestTimestamp = Date.now();
 	const handleSubmit = useCallback(
 		async (event?: React.FormEvent<HTMLFormElement>) => {
 			if (event) {
@@ -63,6 +64,8 @@ export default function RegistrationForm() {
 		},
 		[formData, requestGetCodeStatus]
 	);
+	const throttledHandleSubmit = throttle(handleSubmit, 1000);
+
 	return (
 		<>
 			{stage === 0 && (
@@ -70,8 +73,12 @@ export default function RegistrationForm() {
 					name={'registration'}
 					autoComplete="true"
 					className={style.authContainer}
-					onSubmit={handleSubmit}
+					onSubmit={e => {
+						e.preventDefault();
+						throttledHandleSubmit();
+					}}
 				>
+					<FormLoader loading={requestGetCodeStatus.loading} />
 					<h1 className={style.title}>
 						{t('registrationFormTitle')}
 					</h1>

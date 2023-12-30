@@ -4,13 +4,14 @@ import { formatPhoneNumber } from '@/utils/validation/isPhoneNumber';
 import { useTranslation } from 'react-i18next';
 import Button from '@/components/common/Button/Button';
 import SMSInput from '@/components/common/SMSInput/SMSInput';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { REGISTRATION_VERIFY_CODE_MUTATION } from '@/graphql/mutations/registration';
 import { config } from '@/config/smsCode/config';
 import { formatTime } from '@/utils/time';
 import { saveNewTokens } from '@/utils/saveNewTokens';
 import { throttle } from '@/utils/throttle';
+import { FormLoader } from '@/components/common/FormLoader/FormLoader';
 
 export default function SMSVerificationForm({
 	number,
@@ -72,25 +73,37 @@ export default function SMSVerificationForm({
 		setButtonDisabled(code.length < config.codeLength);
 	}, [code]);
 
-	const throttledHandle = throttle(async () => {
-		try {
-			const response = await verifyPhone({
-				variables: {
-					region: region,
-					phoneNumber: formatPhoneNumber(number, region),
-					code: code,
-				},
-			});
-			const tokens = response?.data?.verifyPhoneNumber;
-			saveNewTokens(tokens);
-			router.push('/dashboard');
-		} catch (e) {
-			console.error(e);
-		}
-	}, 1000);
+	const throttledHandle = useCallback(
+		throttle(async () => {
+			try {
+				const response = await verifyPhone({
+					variables: {
+						region: region,
+						phoneNumber: formatPhoneNumber(number, region),
+						code: code,
+					},
+				});
+				const tokens = response?.data?.verifyPhoneNumber;
+				saveNewTokens(tokens);
+				router.push('/dashboard');
+			} catch (e) {
+				console.error(e);
+			}
+		}, 1000),
+		[region, number, code]
+	);
 
 	return (
-		<div className={styles.mainContainer}>
+		<form
+			className={styles.mainContainer}
+			autoComplete="false"
+			autoFocus={true}
+			onSubmit={e => {
+				e.preventDefault();
+				throttledHandle();
+			}}
+		>
+			<FormLoader loading={requestVerifyPhoneStatus.loading} />
 			<h1 className={styles.title}>{t('numberVerificationTitle')}</h1>
 			<div className={styles.subTitleContainer}>
 				<p>{t('codeSentToNumber')}:</p>
@@ -125,11 +138,12 @@ export default function SMSVerificationForm({
 				)}
 			</a>
 			<Button
+				className={styles.button}
 				text={t('typeIn')}
 				type={'primary-orange'}
 				disabled={buttonDisabled}
-				onClick={throttledHandle}
+				submit={true}
 			/>
-		</div>
+		</form>
 	);
 }

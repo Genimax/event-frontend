@@ -1,119 +1,110 @@
-import Input from '@/components/common/Input/Input';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import Button from '@/components/common/Button/Button';
-
-import style from './style.module.scss';
-import '../../../config/i18n';
-
-import isEmail from '@/utils/validation/isEmail';
-import {
-	formatPhoneNumber,
-	isPhoneNumber,
-} from '@/utils/validation/isPhoneNumber';
+import Input from '@/components/common/Input/Input';
 import { useMutation } from '@apollo/client';
 import {
 	LOGIN_BY_EMAIL_MUTATION,
 	LOGIN_BY_PHONE_MUTATION,
 } from '@/graphql/mutations/login';
+import isEmail from '@/utils/validation/isEmail';
+import {
+	formatPhoneNumber,
+	isPhoneNumber,
+} from '@/utils/validation/isPhoneNumber';
 import { saveNewTokens } from '@/utils/saveNewTokens';
 import { useRouter } from 'next/navigation';
+import style from './style.module.scss';
+import '../../../config/i18n';
+import { throttle } from '@/utils/throttle';
+import { FormLoader } from '@/components/common/FormLoader/FormLoader';
 
 export default function LoginForm() {
 	const router = useRouter();
 	const { t } = useTranslation();
 	const [stage, setStage] = useState(0);
-
 	const [field, setField] = useState('');
 	const [password, setPassword] = useState('');
-
 	const [buttonActive, setButtonActive] = useState(false);
 
-	const [loginByEmail, requestEmail] = useMutation(LOGIN_BY_EMAIL_MUTATION);
-	const [loginWithPhone, requestPhone] = useMutation(LOGIN_BY_PHONE_MUTATION);
+	const [loginByEmail, emailRequest] = useMutation(LOGIN_BY_EMAIL_MUTATION);
+	const [loginWithPhone, phoneRequest] = useMutation(LOGIN_BY_PHONE_MUTATION);
+
+	const isFieldValid = () => isEmail(field) || isPhoneNumber(field);
+	const isPasswordValid = () => password.length >= 8;
+
+	useEffect(() => {
+		if (stage === 0) {
+			setButtonActive(isFieldValid());
+		} else if (stage === 1) {
+			setButtonActive(isPasswordValid());
+		}
+	}, [field, password, stage]);
 
 	const handleLogin = async () => {
 		try {
-			let response;
-			if (isEmail(field)) {
-				response = (
-					await loginByEmail({
-						variables: {
-							email: field,
-							password,
-						},
-					})
-				).data?.loginByEmail;
-			} else if (isPhoneNumber(field)) {
-				response = (
-					await loginWithPhone({
+			const response = await (isEmail(field)
+				? loginByEmail({ variables: { email: field, password } })
+				: loginWithPhone({
 						variables: {
 							phoneNumber: formatPhoneNumber(field, 'RU'),
 							password,
 							region: 'RU',
 						},
-					})
-				).data?.loginWithPhone;
-			}
-			saveNewTokens(response);
+				  }));
+			saveNewTokens(
+				response.data?.[
+					isEmail(field) ? 'loginByEmail' : 'loginWithPhone'
+				]
+			);
 			router.push('/dashboard');
 		} catch (e) {
 			console.error('Login error:', e);
 		}
 	};
 
+	const throttledLogin = useCallback(
+		throttle(() => handleLogin(), 1000),
+		[field, password]
+	);
+
 	const nextAction = () => {
-		if (stage === 0) {
+		if (stage === 0 && isFieldValid()) {
 			setStage(1);
-		}
-		if (stage === 1) {
-			handleLogin();
+		} else if (stage === 1 && isPasswordValid()) {
+			throttledLogin();
 		}
 	};
-
-	useEffect(() => {
-		setButtonActive(
-			(stage === 0 && (isEmail(field) || isPhoneNumber(field))) ||
-				(stage === 1 && password.length >= 8)
-		);
-	}, [field, password, stage]);
 
 	return (
 		<form
 			autoComplete="true"
 			className={style.authContainer}
-			onSubmit={event => {
-				event.preventDefault();
-				if (buttonActive) nextAction();
+			onSubmit={e => {
+				e.preventDefault();
+				nextAction();
 			}}
 		>
+			<FormLoader
+				loading={emailRequest.loading || phoneRequest.loading}
+			/>
 			<h1 className={style.title}>{t('loginTitle')}</h1>
-			<div className={style.methods}>
-				<div className={style.method}></div>
-				<div className={style.method}></div>
-				<div className={style.method}></div>
-			</div>
-			<div className={style.separator}>{t('or')}</div>
 			{stage === 0 && (
 				<Input
 					title={t('phoneOrEmail')}
 					value={field}
 					setValue={setField}
-					placeholder=""
-					autoFocus={true}
+					autoFocus
 				/>
 			)}
 			{stage === 1 && (
-				<div className={style.fadeIn}>
-					<Input
-						type={'password'}
-						title={t('password')}
-						value={password}
-						setValue={setPassword}
-						autoFocus={true}
-					/>
-				</div>
+				<Input
+					type="password"
+					title={t('password')}
+					value={password}
+					setValue={setPassword}
+					autoFocus
+				/>
 			)}
 			<a className={style.forgotPassword} href="/">
 				{t('forgotResetAccess')}
@@ -121,8 +112,7 @@ export default function LoginForm() {
 			<div className={style.buttonsContainer}>
 				<Button
 					text={t('enter')}
-					submit={stage === 1}
-					onClick={nextAction}
+					submit={true}
 					type="primary-orange"
 					disabled={!buttonActive}
 				/>

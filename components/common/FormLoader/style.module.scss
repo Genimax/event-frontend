@@ -1,0 +1,25 @@
+@import '@/assets/style/animations';
+@import '@/assets/style/mixins';
+
+.loaderContainer {
+	z-index: 10;
+	position: absolute;
+	background: rgba(0, 0, 0, 0.89);
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	border-radius: 5rem;
+	backdrop-filter: blur(2rem);
+	border: 1rem solid rgba(220, 11, 73, 0.8);
+	@include Loader();
+	.loader:after {
+		background: $primary-orange-button;
+		box-shadow: 0 0 5rem rgba(255, 204, 0, 0.8),
+			0 0 10rem rgba(220, 11, 73, 0.8), 0 0 20rem rgba(0, 255, 255, 0.8),
+			0 0 40rem rgba(34, 255, 0, 0.8);
+	}
+	@include fades();
+}

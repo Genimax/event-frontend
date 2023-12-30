@@ -1,13 +1,25 @@
-@import "./colors.scss";
+@import './colors.scss';
+@import 'media';
 
 @mixin formContainer {
-  display: flex;
-  flex-direction: column;
-  background-color: $primary-white;
-  border-radius: 5rem;
-  padding: 20rem 10rem;
-  height: fit-content;
-  width: fit-content;
-  min-width: 100rem;
-  min-height: 100rem;
+	display: flex;
+	flex-direction: column;
+	background-color: $primary-white;
+	border-radius: 5rem;
+	height: fit-content;
+	width: fit-content;
+	min-width: 100rem;
+	min-height: 100rem;
+	padding-left: 10rem;
+	padding-right: 10rem;
+
+	@media (min-width: $M) {
+		padding-left: 135rem;
+		padding-right: 135rem;
+	}
+
+	@media (min-width: $XL) {
+		padding-left: 10rem;
+		padding-right: 10rem;
+	}
 }

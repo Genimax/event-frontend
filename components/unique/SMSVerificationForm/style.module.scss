@@ -8,6 +8,7 @@ $margin-bottom: 30rem;
 .mainContainer {
 	@include formContainer();
 	display: flex;
+	position: relative;
 	flex-direction: column;
 	align-items: center;
 	margin-bottom: 50rem;
@@ -19,6 +20,7 @@ $margin-bottom: 30rem;
 
 	.title {
 		@include InterMed_14();
+		margin-top: 20rem;
 		margin-bottom: $margin-bottom;
 		text-align: center;
 		color: black;
@@ -41,6 +43,10 @@ $margin-bottom: 30rem;
 	.smsContainer {
 		width: 315rem;
 		margin-bottom: $margin-bottom;
+	}
+
+	.button {
+		margin-bottom: 20rem;
 	}
 
 	.action {
