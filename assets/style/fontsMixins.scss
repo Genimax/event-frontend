@@ -23,17 +23,25 @@
 	@include font('Inter', $fontSize, $lineHeight);
 }
 
+@mixin Inter_12() {
+	@include Inter(12, 14.5);
+}
+
 @mixin Inter_14() {
 	@include Inter(14, 17);
 }
 
-@mixin Inter_12() {
-	@include Inter(12, 14.5);
+@mixin Inter_42() {
+	@include Inter(42, 52);
 }
 
 // InterMedium
 @mixin InterMed($fontSize, $lineHeight) {
 	@include font('Inter', $fontSize, $lineHeight, 700);
+}
+
+@mixin InterMed_14() {
+	@include InterMed(14, 18);
 }
 
 @mixin InterMed_18() {

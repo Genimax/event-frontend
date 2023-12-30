@@ -1,0 +1,135 @@
+import { useRouter } from 'next/navigation';
+import styles from './style.module.scss';
+import { formatPhoneNumber } from '@/utils/validation/isPhoneNumber';
+import { useTranslation } from 'react-i18next';
+import Button from '@/components/common/Button/Button';
+import SMSInput from '@/components/common/SMSInput/SMSInput';
+import { useEffect, useState } from 'react';
+import { useMutation } from '@apollo/client';
+import { REGISTRATION_VERIFY_CODE_MUTATION } from '@/graphql/mutations/registration';
+import { config } from '@/config/smsCode/config';
+import { formatTime } from '@/utils/time';
+import { saveNewTokens } from '@/utils/saveNewTokens';
+import { throttle } from '@/utils/throttle';
+
+export default function SMSVerificationForm({
+	number,
+	region,
+	dataSubmit,
+	initialTimestampAfterTimeout,
+}: {
+	number: string;
+	region: string;
+	dataSubmit: () => void;
+	initialTimestampAfterTimeout: number;
+}) {
+	const router = useRouter();
+	const { t } = useTranslation();
+	const formattedNumber = formatPhoneNumber(number, region);
+	const [code, setCode] = useState('');
+	const [verifyPhone, requestVerifyPhoneStatus] = useMutation(
+		REGISTRATION_VERIFY_CODE_MUTATION
+	);
+	const [buttonDisabled, setButtonDisabled] = useState(true);
+	const [sendsData, setSendsData] = useState({
+		lastSend: Date.now(),
+		nextResendTimestamp: initialTimestampAfterTimeout,
+		timeRemaining: initialTimestampAfterTimeout - new Date().getTime(),
+		wrongEnters: 0,
+	});
+
+	useEffect(() => {
+		setSendsData(prev => {
+			return {
+				...prev,
+				nextResendTimestamp: initialTimestampAfterTimeout,
+			};
+		});
+	}, [initialTimestampAfterTimeout]);
+
+	useEffect(() => {
+		const updateRemainingTime = () => {
+			setSendsData(prev => {
+				const now = Date.now();
+				const newTimeRemaining = Math.max(
+					0,
+					prev.nextResendTimestamp - now
+				);
+				return {
+					...prev,
+					timeRemaining: newTimeRemaining,
+				};
+			});
+		};
+
+		const timer = setInterval(updateRemainingTime, 1000);
+		updateRemainingTime();
+
+		return () => clearInterval(timer);
+	}, []);
+
+	useEffect(() => {
+		setButtonDisabled(code.length < config.codeLength);
+	}, [code]);
+
+	const throttledHandle = throttle(async () => {
+		try {
+			const response = await verifyPhone({
+				variables: {
+					region: region,
+					phoneNumber: formatPhoneNumber(number, region),
+					code: code,
+				},
+			});
+			const tokens = response?.data?.verifyPhoneNumber;
+			saveNewTokens(tokens);
+			router.push('/dashboard');
+		} catch (e) {
+			console.error(e);
+		}
+	}, 1000);
+
+	return (
+		<div className={styles.mainContainer}>
+			<h1 className={styles.title}>{t('numberVerificationTitle')}</h1>
+			<div className={styles.subTitleContainer}>
+				<p>{t('codeSentToNumber')}:</p>
+				<p className={styles.phone}>{formattedNumber}</p>
+			</div>
+			<div className={styles.smsContainer}>
+				<SMSInput
+					codeLength={config.codeLength}
+					code={code}
+					setCode={setCode}
+				/>
+			</div>
+			<a
+				className={`${styles.action} ${
+					sendsData.timeRemaining > 0 ? styles.nonClick : ''
+				}`}
+				onClick={() => {
+					if (sendsData.timeRemaining === 0) {
+						dataSubmit();
+					}
+				}}
+			>
+				{t('resendCode')}
+				{sendsData.timeRemaining > 0 && (
+					<>
+						<br />
+						<span>
+							{t('mayBeAfter')}:{' '}
+							{formatTime(sendsData.timeRemaining)}
+						</span>
+					</>
+				)}
+			</a>
+			<Button
+				text={t('typeIn')}
+				type={'primary-orange'}
+				disabled={buttonDisabled}
+				onClick={throttledHandle}
+			/>
+		</div>
+	);
+}

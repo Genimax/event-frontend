@@ -2,8 +2,6 @@
 @import '@/assets/style/fontsMixins';
 @import '@/assets/style/animations';
 
-$margin-bottom-XL: 30rem;
-
 .authContainer {
 	@include formContainer();
 	@include fades();
@@ -96,5 +94,14 @@ $margin-bottom-XL: 30rem;
 		display: flex;
 		flex-direction: column;
 		gap: 5rem;
+	}
+
+	.error {
+		@include Inter_12();
+		text-align: center;
+		color: red;
+		width: 330rem;
+		height: fit-content;
+		margin-bottom: 30rem;
 	}
 }

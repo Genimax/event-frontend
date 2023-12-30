@@ -21,10 +21,7 @@ export default function Button({
 	return (
 		<a className={style.link} href={href}>
 			<button
-				onClick={e => {
-					e.preventDefault();
-					onClick();
-				}}
+				onClick={onClick}
 				className={buttonClass}
 				disabled={disabled}
 				type={submit ? 'submit' : 'button'}

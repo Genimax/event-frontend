@@ -1,0 +1,60 @@
+@import '@/assets/style/containers';
+@import '@/assets/style/fontsMixins';
+@import '@/assets/style/colors';
+@import '@/assets/style/animations';
+
+$margin-bottom: 30rem;
+
+.mainContainer {
+	@include formContainer();
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 50rem;
+	@include fades();
+
+	@media (min-width: $XL) {
+		margin: 50rem 0;
+	}
+
+	.title {
+		@include InterMed_14();
+		margin-bottom: $margin-bottom;
+		text-align: center;
+		color: black;
+	}
+
+	.subTitleContainer {
+		@include Inter_12();
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
+		gap: 7rem;
+		margin-bottom: $margin-bottom;
+
+		.phone {
+			text-decoration: underline $secondary-grey 1rem;
+		}
+	}
+
+	.smsContainer {
+		width: 315rem;
+		margin-bottom: $margin-bottom;
+	}
+
+	.action {
+		@include Inter_12();
+		margin-bottom: $margin-bottom;
+		width: fit-content;
+		border-bottom: 1rem solid;
+		cursor: pointer;
+		text-align: center;
+	}
+
+	.nonClick {
+		opacity: 0.5;
+		cursor: unset;
+		border: none;
+	}
+}

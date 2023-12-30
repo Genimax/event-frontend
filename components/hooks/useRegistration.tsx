@@ -25,6 +25,7 @@ export default function useRegistration() {
 		phoneNumber: '',
 		passwordOne: '',
 		passwordTwo: '',
+		region: 'RU',
 	});
 	const [fieldsStatus, setFieldStatus] = useState({
 		email: false,
@@ -67,7 +68,7 @@ export default function useRegistration() {
 				passwordLengthIsOkay(passwordOne),
 			passwordsAreEqual: passwordOne === passwordTwo,
 		});
-	}, [formData, setStatus]);
+	}, [formData, errors]);
 
 	useEffect(() => {
 		setButtonActive(
@@ -112,8 +113,11 @@ export default function useRegistration() {
 		try {
 			const response = await checkPhone({
 				variables: {
-					phoneNumber: formatPhoneNumber(formData.phoneNumber, 'RU'),
-					region: 'RU',
+					phoneNumber: formatPhoneNumber(
+						formData.phoneNumber,
+						formData.region
+					),
+					region: formData.region,
 				},
 			});
 			const result = response.data.checkUniquePhoneNumber;

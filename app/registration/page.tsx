@@ -16,7 +16,7 @@ export default function Registration() {
 	return (
 		showContent && (
 			<ApolloProvider client={apolloClient}>
-				<div className={style.loginMainContainer}>
+				<div className={style.registrationMainContainer}>
 					<Image src={Logo} alt={'logo'} className={style.logo} />
 					<RegistrationForm />
 				</div>

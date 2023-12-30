@@ -19,3 +19,43 @@ export const CHECK_PHONE_MUTATION = gql`
 		}
 	}
 `;
+
+export const REGISTRATION_REQUEST_CODE_MUTATION = gql`
+	mutation checkUniquePhoneNumber(
+		$phoneNumber: String!
+		$region: String!
+		$email: String!
+		$password: String!
+	) {
+		requestVerificationCode(
+			registerInput: {
+				phoneNumber: $phoneNumber
+				region: $region
+				email: $email
+				password: $password
+			}
+		) {
+			verificationCode
+			timestampAfterTimeout
+		}
+	}
+`;
+
+export const REGISTRATION_VERIFY_CODE_MUTATION = gql`
+	mutation verifyPhoneNumber(
+		$phoneNumber: String!
+		$region: String!
+		$code: String!
+	) {
+		verifyPhoneNumber(
+			verifyInput: {
+				phoneNumber: $phoneNumber
+				region: $region
+				code: $code
+			}
+		) {
+			access_token
+			refresh_token
+		}
+	}
+`;
