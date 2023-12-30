@@ -1,11 +1,5 @@
 import styles from './style.module.scss';
-import React, {
-	useState,
-	ChangeEvent,
-	useRef,
-	useEffect,
-	KeyboardEvent,
-} from 'react';
+import React, { ChangeEvent, useRef, useEffect, KeyboardEvent } from 'react';
 
 interface SMSInputProps {
 	codeLength: number;
@@ -24,10 +18,16 @@ const SMSInput: React.FC<SMSInputProps> = ({ codeLength, code, setCode }) => {
 		event: ChangeEvent<HTMLInputElement>,
 		index: number
 	) => {
+		// Если код уже максимальной длины и пытаются ввести новый символ, блокируем это
+		if (code.length >= codeLength && event.target.value) {
+			return;
+		}
+
 		const newCode = Array.from(code);
 		newCode[index] = event.target.value;
 		setCode(newCode.join(''));
 
+		// Перемещаем фокус на следующий элемент, если это возможно
 		if (index < codeLength - 1 && event.target.value) {
 			inputRefs.current[index + 1]?.focus();
 		}

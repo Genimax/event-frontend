@@ -93,6 +93,24 @@ export default function SMSVerificationForm({
 		[region, number, code]
 	);
 
+	const errorRender = () => {
+		if (!requestVerifyPhoneStatus.error) {
+			return null;
+		}
+		let translationKey: string;
+		const errorMessage = requestVerifyPhoneStatus?.error?.message;
+
+		if (errorMessage?.includes('-07-')) {
+			translationKey = 'expiredCode';
+		} else if (errorMessage?.includes('-09-')) {
+			translationKey = 'wrongCode';
+		} else {
+			translationKey = 'codeMainError';
+		}
+
+		return <p className={styles.error}>{t(translationKey)}</p>;
+	};
+
 	return (
 		<form
 			className={styles.mainContainer}
@@ -116,6 +134,7 @@ export default function SMSVerificationForm({
 					setCode={setCode}
 				/>
 			</div>
+			{errorRender()}
 			<a
 				className={`${styles.action} ${
 					sendsData.timeRemaining > 0 ? styles.nonClick : ''
