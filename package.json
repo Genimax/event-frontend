@@ -32,5 +32,18 @@
     "if": "^2.0.0",
     "sass": "^1.69.5",
     "typescript": "^5"
-  }
+  },
+  "description": "This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).",
+  "main": "next.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Genimax/event-frontend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Genimax/event-frontend/issues"
+  },
+  "homepage": "https://github.com/Genimax/event-frontend#readme"
 }
