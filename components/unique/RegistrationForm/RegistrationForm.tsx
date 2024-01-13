@@ -7,21 +7,21 @@ import { useRouter } from 'next/navigation';
 import style from './style.module.scss';
 import '../../../config/i18n';
 import SMSVerificationForm from '@/components/unique/SMSVerificationForm/SMSVerificationForm';
-import { useMutation } from '@apollo/client';
-import { REGISTRATION_REQUEST_CODE_MUTATION } from '@/graphql/mutations/registration';
 import { throttle } from '@/utils/throttle';
 import { FormLoader } from '@/components/common/FormLoader/FormLoader';
+import { apiPaths } from '@/config/api';
+import { formatPhoneNumber } from '@/utils/validation/isPhoneNumber';
+import Tooltip from '@/components/common/Tooltip/Tooltip';
 
 export default function RegistrationForm() {
 	const router = useRouter();
 	const { t } = useTranslation();
 	const [stage, setStage] = useState(0);
-	const [getCode, requestGetCodeStatus] = useMutation(
-		REGISTRATION_REQUEST_CODE_MUTATION
-	);
+	const [requestGetCodeStatus, setRequestGetCodeStatus] = useState<any>({
+		loading: false,
+	});
+
 	const {
-		checkEmailRequest,
-		checkPhoneRequest,
 		setError,
 		errors,
 		fieldsStatus,
@@ -46,20 +46,22 @@ export default function RegistrationForm() {
 				event.preventDefault();
 			}
 			if (!requestGetCodeStatus.loading) {
-				const response = await getCode({
-					variables: {
-						email: formData.email,
-						phoneNumber: formData.phoneNumber,
-						password: formData.passwordOne && formData.passwordTwo,
-						region: formData.region,
-					},
-				});
-				const data = response.data?.requestVerificationCode;
-				console.log(data);
+				setRequestGetCodeStatus({ loading: true });
+
+				const response = await apiPaths.registration.requestCode(
+					formatPhoneNumber(formData.phoneNumber, formData.region),
+					formData.email,
+					formData.passwordOne,
+					formData.region
+				);
+				const data = response.data;
+				setRequestGetCodeStatus({ loading: false, ...data });
 				setNextTimestamp(data?.timestampAfterTimeout);
 				alert(data?.verificationCode);
-				setStage(1);
-				console.log(requestGetCodeStatus);
+
+				if (!data.error) {
+					setStage(1);
+				}
 			}
 		},
 		[formData, requestGetCodeStatus]
@@ -89,98 +91,144 @@ export default function RegistrationForm() {
 					</div>
 					<div className={style.separator}>{t('or')}</div>
 					<div className={style.inputContainer}>
-						<Input
-							placeholder={
-								!formData.email && errors.email
-									? t('fieldEmpty')
-									: ''
+						<Tooltip
+							message={
+								!fieldsStatus.emailIsUnique
+									? t('tryOtherEmail')
+									: t('wrongEmail')
 							}
-							title={t('emailAddress') + ' *'}
-							value={formData.email}
-							setValue={handleChange('email')}
-							autoFocus={true}
-							type="email"
-							required={true}
-							isError={
-								errors.email ||
-								(checkEmailRequest.called &&
-									!checkEmailRequest.loading &&
-									!fieldsStatus.emailIsUnique)
+							isVisible={
+								!fieldsStatus.emailIsUnique || errors.email
 							}
-							onBlur={handleInputError(
-								'email',
-								!fieldsStatus.email
-							)}
-							onInput={handleInputError('email', false)}
-						/>
+						>
+							<Input
+								placeholder={
+									!formData.email && errors.email
+										? t('fieldEmpty')
+										: ''
+								}
+								title={t('emailAddress') + ' *'}
+								value={formData.email}
+								setValue={handleChange('email')}
+								autoFocus={true}
+								type="email"
+								required={true}
+								isError={
+									errors.email || !fieldsStatus.emailIsUnique
+								}
+								onBlur={() =>
+									handleInputError(
+										'email',
+										!fieldsStatus.email
+									)()
+								}
+								onInput={() => {
+									handleInputError('email', false)();
+								}}
+							/>
+						</Tooltip>
+						<Tooltip
+							message={
+								!fieldsStatus.phoneNumberIsUnique
+									? t('tryOtherPhone')
+									: t('wrongPhone')
+							}
+							isVisible={
+								!fieldsStatus.phoneNumberIsUnique ||
+								errors.phoneNumber
+							}
+						>
+							<Input
+								placeholder={
+									!formData.phoneNumber && errors.phoneNumber
+										? t('fieldEmpty')
+										: ''
+								}
+								title={t('phoneNumber') + ' *'}
+								value={formData.phoneNumber}
+								setValue={handleChange('phoneNumber')}
+								type="phone"
+								required={true}
+								isError={
+									errors.phoneNumber ||
+									!fieldsStatus.phoneNumberIsUnique
+								}
+								onBlur={() =>
+									handleInputError(
+										'phoneNumber',
+										!fieldsStatus.phoneNumber
+									)()
+								}
+								onInput={() =>
+									handleInputError('phoneNumber', false)()
+								}
+							/>
+						</Tooltip>
 
-						<Input
-							placeholder={
-								!formData.phoneNumber && errors.phoneNumber
-									? t('fieldEmpty')
-									: ''
-							}
-							title={t('phoneNumber') + ' *'}
-							value={formData.phoneNumber}
-							setValue={handleChange('phoneNumber')}
-							type="phone"
-							required={true}
-							isError={
-								errors.phoneNumber ||
-								(checkPhoneRequest.called &&
-									!checkPhoneRequest.loading &&
-									!fieldsStatus.phoneNumberIsUnique)
-							}
-							onBlur={handleInputError(
-								'phoneNumber',
-								!fieldsStatus.phoneNumber
-							)}
-							onInput={handleInputError('phoneNumber', false)}
-						/>
-
-						<Input
-							placeholder={
-								!formData.passwordOne && errors.passwordOne
-									? t('fieldEmpty')
-									: ''
-							}
-							title={t('password') + ' *'}
-							value={formData.passwordOne}
-							setValue={handleChange('passwordOne')}
-							type="password"
-							required={true}
-							isError={errors.passwordOne || errors.passwordsBoth}
-							onBlur={handleInputError(
-								'passwordOne',
-								!fieldsStatus.passwordOne
-							)}
-							onInput={handleInputError('passwordOne', false)}
-						/>
-
-						<Input
-							placeholder={
-								!formData.passwordTwo && errors.passwordsBoth
-									? t('fieldEmpty')
-									: ''
-							}
-							title={t('repeatPassword') + ' *'}
-							value={formData.passwordTwo}
-							setValue={handleChange('passwordTwo')}
-							type="password"
-							required={true}
-							isError={errors.passwordsBoth}
-							onBlur={handleInputError(
-								'passwordsBoth',
-								!fieldsStatus.passwordsAreEqual
-							)}
-							onInput={handleInputError('passwordsBoth', false)}
-						/>
+						<Tooltip
+							message={t('passwordConditions')}
+							isVisible={errors.passwordOne}
+						>
+							<Input
+								placeholder={
+									!formData.passwordOne && errors.passwordOne
+										? t('fieldEmpty')
+										: ''
+								}
+								title={t('password') + ' *'}
+								value={formData.passwordOne}
+								setValue={handleChange('passwordOne')}
+								type="password"
+								required={true}
+								isError={
+									errors.passwordOne || errors.passwordsBoth
+								}
+								onBlur={() =>
+									handleInputError(
+										'passwordOne',
+										!fieldsStatus.passwordOne
+									)()
+								}
+								onInput={() =>
+									handleInputError('passwordOne', false)()
+								}
+							/>
+						</Tooltip>
+						<Tooltip
+							message={t('passwordsNotEqual')}
+							isVisible={errors.passwordsBoth}
+						>
+							<Input
+								placeholder={
+									!formData.passwordTwo &&
+									errors.passwordsBoth
+										? t('fieldEmpty')
+										: ''
+								}
+								title={t('repeatPassword') + ' *'}
+								value={formData.passwordTwo}
+								setValue={handleChange('passwordTwo')}
+								type="password"
+								required={true}
+								isError={errors.passwordsBoth}
+								onBlur={() =>
+									handleInputError(
+										'passwordsBoth',
+										!fieldsStatus.passwordsAreEqual
+									)()
+								}
+								onInput={() =>
+									handleInputError('passwordsBoth', false)()
+								}
+							/>
+						</Tooltip>
 					</div>
-					{requestGetCodeStatus?.error?.message.includes('-04-') && (
-						<div className={style.error}>
-							{t('tooManyRequests')}
-						</div>
-					)}
+					{requestGetCodeStatus?.error &&
+						requestGetCodeStatus?.code.includes('02') && (
+							<div className={style.error}>
+								{t('tooManyRequests')}
+							</div>
+						)}
 					<div className={style.buttonsContainer}>
 						<Button
 							text={t('toRegistration')}
@@ -203,6 +251,8 @@ export default function RegistrationForm() {
 					region={formData.region}
 					dataSubmit={() => handleSubmit()}
 					initialTimestampAfterTimeout={nextTimestamp}
+					submitRequestStatus={requestGetCodeStatus}
+					setStage={setStage}
 				/>
 			)}
 		</>

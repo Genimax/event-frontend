@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import isEmail from '@/utils/validation/isEmail';
 import {
 	formatPhoneNumber,
@@ -9,16 +10,9 @@ import {
 	passwordLengthIsOkay,
 } from '@/utils/validation/isPassword';
 import { debounce } from '@/utils/debounce';
-import { useMutation } from '@apollo/client';
-import {
-	CHECK_EMAIL_MUTATION,
-	CHECK_PHONE_MUTATION,
-} from '@/graphql/mutations/registration';
+import { apiPaths } from '@/config/api';
 
 export default function useRegistration() {
-	const [checkEmail, checkEmailRequest] = useMutation(CHECK_EMAIL_MUTATION);
-	const [checkPhone, checkPhoneRequest] = useMutation(CHECK_PHONE_MUTATION);
-
 	const [buttonActive, setButtonActive] = useState(false);
 	const [formData, setFormData] = useState({
 		email: '',
@@ -29,9 +23,9 @@ export default function useRegistration() {
 	});
 	const [fieldsStatus, setFieldStatus] = useState({
 		email: false,
-		emailIsUnique: false,
+		emailIsUnique: true,
 		phoneNumber: false,
-		phoneNumberIsUnique: false,
+		phoneNumberIsUnique: true,
 		passwordOne: false,
 		passwordsAreEqual: false,
 	});
@@ -42,6 +36,9 @@ export default function useRegistration() {
 		passwordOne: false,
 		passwordsBoth: false,
 	});
+
+	const [emailChecked, setEmailChecked] = useState(false);
+	const [phoneChecked, setPhoneChecked] = useState(false);
 
 	const setError = useCallback((valueKey: { [key: string]: any }) => {
 		setErrors(prev => ({
@@ -77,25 +74,28 @@ export default function useRegistration() {
 				fieldsStatus.phoneNumber &&
 				fieldsStatus.phoneNumberIsUnique &&
 				fieldsStatus.passwordOne &&
-				fieldsStatus.passwordsAreEqual
+				fieldsStatus.passwordsAreEqual &&
+				emailChecked &&
+				phoneChecked
 		);
 	}, [fieldsStatus]);
 
 	/** Email uniqueness check */
 	const fetchEmail = useCallback(async () => {
 		try {
-			const response = await checkEmail({
-				variables: {
-					email: formData.email,
-				},
-			});
-			const result = response.data.checkUniqueEmail;
+			const response = await apiPaths.registration.checkUser(
+				'email',
+				formData.email
+			);
+			const result = response.data;
 			setStatus({ emailIsUnique: result.unique });
+			setEmailChecked(true);
 			return result;
 		} catch (error) {
-			console.error(error);
+			console.log(error);
+			setEmailChecked(true);
 		}
-	}, [checkEmail, formData.email, setStatus]);
+	}, [formData.email]);
 
 	const debouncedFetchEmail = useMemo(
 		() => debounce(fetchEmail, 1000),
@@ -111,22 +111,25 @@ export default function useRegistration() {
 	/** Phone number uniqueness check */
 	const fetchPhone = useCallback(async () => {
 		try {
-			const response = await checkPhone({
-				variables: {
+			const response = await apiPaths.registration.checkUser(
+				'phoneNumber',
+				{
 					phoneNumber: formatPhoneNumber(
 						formData.phoneNumber,
 						formData.region
 					),
 					region: formData.region,
-				},
-			});
-			const result = response.data.checkUniquePhoneNumber;
+				}
+			);
+			const result = response.data;
 			setStatus({ phoneNumberIsUnique: result.unique });
+			setPhoneChecked(true);
 			return result;
 		} catch (error) {
-			console.error(error);
+			console.log(error);
+			setPhoneChecked(true);
 		}
-	}, [checkPhone, formData.phoneNumber]);
+	}, [formData.phoneNumber]);
 
 	const debouncedFetchPhone = useMemo(
 		() => debounce(fetchPhone, 1000),
@@ -139,6 +142,9 @@ export default function useRegistration() {
 		}
 	}, [debouncedFetchPhone, formData.phoneNumber]);
 
+	useEffect(() => setEmailChecked(false), [formData.email]);
+	useEffect(() => setPhoneChecked(false), [formData.phoneNumber]);
+
 	return {
 		buttonActive,
 		formData,
@@ -146,7 +152,7 @@ export default function useRegistration() {
 		fieldsStatus,
 		setError,
 		errors,
-		checkEmailRequest,
-		checkPhoneRequest,
+		emailChecked,
+		phoneChecked,
 	};
 }

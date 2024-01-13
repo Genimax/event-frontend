@@ -1,0 +1,15 @@
+.button {
+	position: absolute;
+	left: 13rem;
+	top: 18rem;
+	width: 20rem;
+	height: 20rem;
+	background-size: contain;
+	background: url('../../../assets/icons/arrow-grey.svg') no-repeat;
+	border: none;
+	cursor: pointer;
+}
+
+.button:hover {
+	opacity: 0.5;
+}

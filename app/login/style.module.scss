@@ -20,12 +20,8 @@
 	}
 }
 
-.logo {
+.logoContainer {
 	margin: 80rem 0;
-	width: 262rem;
-	height: 58rem;
-	background-repeat: no-repeat;
-	background-size: contain;
 
 	@media (min-width: $M) {
 		margin: 88rem 0 120rem 0;
@@ -33,5 +29,12 @@
 
 	@media (min-width: $XL) {
 		margin: 0 260rem 0 0;
+	}
+
+	.logo {
+		width: 262rem;
+		height: 58rem;
+		background-repeat: no-repeat;
+		background-size: contain;
 	}
 }

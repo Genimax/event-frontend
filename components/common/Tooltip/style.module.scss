@@ -1,0 +1,51 @@
+@import '@/assets/style/fontsMixins';
+@import '@/assets/style/colors';
+
+.tooltipContainer {
+	position: relative;
+	display: inline-block;
+}
+
+$background: rgba(35, 13, 29, 1);
+
+.tooltip {
+	@include Inter_12();
+	white-space: pre-line;
+	visibility: hidden;
+	background-color: $background; // The color from your design
+	color: $error-text;
+	text-align: left;
+	padding: 8rem;
+	border-radius: 4rem;
+	position: absolute;
+	z-index: 10;
+	bottom: 100%;
+	left: 0;
+	transform: translateX(-50%);
+	transition: visibility 0s, opacity 0.5s linear, transform 0.5s;
+	width: fit-content;
+	max-width: 280rem;
+	opacity: 0;
+	cursor: pointer;
+
+	&::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 10%;
+		margin-left: -5rem;
+		border-width: 5rem;
+		border-style: solid;
+		border-color: $background transparent transparent transparent; // Match the tooltip background
+	}
+
+	&.visible {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(-5rem);
+	}
+}
+
+.arrow {
+	// Styling for the arrow, if you need a specific shape
+}

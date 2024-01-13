@@ -1,72 +1,43 @@
-import { useCallback, useEffect, useState } from 'react';
-import { refreshToken, isTokenValid } from '@/utils/api';
-import { router } from 'next/client';
+import { useEffect, useState } from 'react';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import Cookies from 'js-cookie';
 
-export const useOnlyForAuth = (router: AppRouterInstance) => {
-	const [loggedIn, setLoggedIn] = useState(false);
-	const [loading, setLoading] = useState(true);
+import { apiPaths } from '@/config/api';
 
-	const verifyAndRefreshToken = useCallback(async () => {
-		setLoading(true);
-		if (!isTokenValid('access_token')) {
-			try {
-				await refreshToken();
-				setLoggedIn(true);
-			} catch (error) {
-				console.error('Error refreshing token:', error);
-				setLoggedIn(false);
-				router.push('/login');
-			}
-		} else {
-			setLoggedIn(true);
-		}
-		setLoading(false);
-	}, [router]);
-
-	useEffect(() => {
-		verifyAndRefreshToken();
-	}, [verifyAndRefreshToken]);
-
-	const showContent = !loading && loggedIn;
-	return { showContent };
-};
-
-export const useForNotAuth = (
+export const useAuthCheck = (
 	router: AppRouterInstance,
-	redirectUrl: string
+	redirectPath: string,
+	secure: boolean
 ) => {
-	const [loggedIn, setLoggedIn] = useState(true);
+	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(true);
 
-	const verifyAndHandleToken = useCallback(async () => {
-		setLoading(true);
-		if (!isTokenValid('access_token')) {
-			try {
-				await refreshToken();
-				setLoggedIn(true);
-				router.push(redirectUrl);
-			} catch (error) {
-				setLoggedIn(false);
-			}
-		} else {
-			setLoggedIn(true);
-			router.push(redirectUrl);
+	const request = async () => {
+		try {
+			const response = await apiPaths.authCheck[
+				secure ? 'forLoggedIn' : 'forLoggedOut'
+			]();
+			const resError = response?.data?.error;
+			setError(resError);
+			setLoading(false);
+		} catch (err) {
+			setError(true);
+			setLoading(false);
 		}
-		setLoading(false);
-	}, [router, redirectUrl]);
+		if (error) {
+			router.push(redirectPath);
+		}
+	};
 
 	useEffect(() => {
-		verifyAndHandleToken();
-	}, [verifyAndHandleToken]);
+		request();
+	}, []);
 
-	const showContent = !loading && !loggedIn;
+	useEffect(() => {
+		if (error) {
+			router.push(redirectPath);
+		}
+	}, [error]);
+
+	const showContent = !loading && !error;
 	return { showContent };
-};
-
-export const logOut = async (router: AppRouterInstance) => {
-	Cookies.remove('access_token');
-	Cookies.remove('refresh_token');
-	router.push('/login');
 };

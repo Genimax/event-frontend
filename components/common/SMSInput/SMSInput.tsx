@@ -1,13 +1,26 @@
 import styles from './style.module.scss';
-import React, { ChangeEvent, useRef, useEffect, KeyboardEvent } from 'react';
+import React, {
+	ChangeEvent,
+	useRef,
+	useEffect,
+	KeyboardEvent,
+	useState,
+} from 'react';
 
 interface SMSInputProps {
 	codeLength: number;
 	code: string;
 	setCode: (code: string) => void;
+	isError?: boolean;
 }
 
-const SMSInput: React.FC<SMSInputProps> = ({ codeLength, code, setCode }) => {
+const SMSInput: React.FC<SMSInputProps> = ({
+	codeLength,
+	code,
+	setCode,
+	isError = false,
+}) => {
+	const [clearError, setClearError] = useState(false);
 	const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
 	useEffect(() => {
@@ -59,11 +72,19 @@ const SMSInput: React.FC<SMSInputProps> = ({ codeLength, code, setCode }) => {
 				onKeyDown={e => handleKeyDown(e, i)}
 				maxLength={1}
 				className={styles.input}
+				onInput={() => {
+					setClearError(true);
+				}}
+				style={
+					isError && !clearError
+						? { backgroundColor: 'rgba(255, 190, 190, 1)' }
+						: {}
+				}
 			/>
 		);
 	}
 
-	return <div className={styles.container}>{inputs}</div>;
+	return <div className={styles.container}>{inputs.map(input => input)}</div>;
 };
 
 export default SMSInput;

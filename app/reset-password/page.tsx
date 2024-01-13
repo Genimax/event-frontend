@@ -1,15 +1,16 @@
 'use client';
 import React from 'react';
-import style from './style.module.scss';
-import LoginForm from '@/components/unique/LoginForm/LoginForm';
+import styles from './styles.module.scss';
 import Image from 'next/image';
 import Logo from '@/assets/images/Logo.svg';
 import { useRouter } from 'next/navigation';
 import { useAuthCheck } from '@/components/hooks/useAuth';
+
+import ResetPasswordForm from '@/components/unique/ResetPasswordForm/ResetPasswordForm';
 import Link from 'next/link';
 import { authConfig } from '@/config/authConfig';
 
-export default function Login() {
+export default function Registration() {
 	const router = useRouter();
 	const { showContent } = useAuthCheck(
 		router,
@@ -19,11 +20,11 @@ export default function Login() {
 
 	return (
 		showContent && (
-			<div className={style.loginMainContainer}>
-				<Link className={style.logoContainer} href={'/'}>
-					<Image src={Logo} alt={'logo'} className={style.logo} />
+			<div className={styles.registrationMainContainer}>
+				<Link href={'/'} className={styles.logoContainer}>
+					<Image src={Logo} alt={'logo'} className={styles.logo} />
 				</Link>
-				<LoginForm />
+				<ResetPasswordForm />
 			</div>
 		)
 	);

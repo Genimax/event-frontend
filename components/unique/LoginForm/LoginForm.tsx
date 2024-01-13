@@ -1,23 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import '../../../config/i18n';
+
 import Button from '@/components/common/Button/Button';
 import Input from '@/components/common/Input/Input';
-import { useMutation } from '@apollo/client';
-import {
-	LOGIN_BY_EMAIL_MUTATION,
-	LOGIN_BY_PHONE_MUTATION,
-} from '@/graphql/mutations/login';
 import isEmail from '@/utils/validation/isEmail';
 import {
 	formatPhoneNumber,
 	isPhoneNumber,
 } from '@/utils/validation/isPhoneNumber';
-import { saveNewTokens } from '@/utils/saveNewTokens';
-import { useRouter } from 'next/navigation';
 import style from './style.module.scss';
-import '../../../config/i18n';
+
 import { throttle } from '@/utils/throttle';
 import { FormLoader } from '@/components/common/FormLoader/FormLoader';
+import Link from 'next/link';
+import { apiPaths } from '@/config/api';
+import Tooltip from '@/components/common/Tooltip/Tooltip';
+import ArrowButton from '@/components/common/ArrowButton/ArrowButton';
 
 export default function LoginForm() {
 	const router = useRouter();
@@ -26,9 +26,8 @@ export default function LoginForm() {
 	const [field, setField] = useState('');
 	const [password, setPassword] = useState('');
 	const [buttonActive, setButtonActive] = useState(false);
-
-	const [loginByEmail, emailRequest] = useMutation(LOGIN_BY_EMAIL_MUTATION);
-	const [loginWithPhone, phoneRequest] = useMutation(LOGIN_BY_PHONE_MUTATION);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(false);
 
 	const isFieldValid = () => isEmail(field) || isPhoneNumber(field);
 	const isPasswordValid = () => password.length >= 8;
@@ -42,25 +41,22 @@ export default function LoginForm() {
 	}, [field, password, stage]);
 
 	const handleLogin = async () => {
+		setLoading(true);
+		const newField = isEmail(field)
+			? field
+			: {
+					phoneNumber: formatPhoneNumber(field, 'RU'),
+					region: 'RU',
+			  };
+
 		try {
-			const response = await (isEmail(field)
-				? loginByEmail({ variables: { email: field, password } })
-				: loginWithPhone({
-						variables: {
-							phoneNumber: formatPhoneNumber(field, 'RU'),
-							password,
-							region: 'RU',
-						},
-				  }));
-			saveNewTokens(
-				response.data?.[
-					isEmail(field) ? 'loginByEmail' : 'loginWithPhone'
-				]
-			);
-			router.push('/dashboard');
+			await apiPaths.auth.login(newField, password);
+			router.push('/profile');
 		} catch (e) {
-			console.error('Login error:', e);
+			console.error('Login error: ', e);
+			setError(true);
 		}
+		setLoading(false);
 	};
 
 	const throttledLogin = useCallback(
@@ -85,30 +81,32 @@ export default function LoginForm() {
 				nextAction();
 			}}
 		>
-			<FormLoader
-				loading={emailRequest.loading || phoneRequest.loading}
-			/>
+			<FormLoader loading={loading} />
 			<h1 className={style.title}>{t('loginTitle')}</h1>
 			{stage === 0 && (
 				<Input
 					title={t('phoneOrEmail')}
 					value={field}
 					setValue={setField}
+					onInput={() => setError(false)}
 					autoFocus
 				/>
 			)}
 			{stage === 1 && (
-				<Input
-					type="password"
-					title={t('password')}
-					value={password}
-					setValue={setPassword}
-					autoFocus
-				/>
+				<Tooltip message={t('wrongCredentials')} isVisible={error}>
+					<Input
+						type="password"
+						title={t('password')}
+						value={password}
+						setValue={setPassword}
+						onInput={() => setError(false)}
+						autoFocus
+					/>
+				</Tooltip>
 			)}
-			<a className={style.forgotPassword} href="/">
+			<Link className={style.forgotPassword} href={'/reset-password'}>
 				{t('forgotResetAccess')}
-			</a>
+			</Link>
 			<div className={style.buttonsContainer}>
 				<Button
 					text={t('enter')}
@@ -122,6 +120,7 @@ export default function LoginForm() {
 					onClick={() => router.push('/registration')}
 				/>
 			</div>
+			{stage === 1 && <ArrowButton onClick={() => setStage(0)} />}
 		</form>
 	);
 }

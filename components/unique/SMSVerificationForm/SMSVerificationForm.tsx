@@ -4,34 +4,36 @@ import { formatPhoneNumber } from '@/utils/validation/isPhoneNumber';
 import { useTranslation } from 'react-i18next';
 import Button from '@/components/common/Button/Button';
 import SMSInput from '@/components/common/SMSInput/SMSInput';
-import { useCallback, useEffect, useState } from 'react';
-import { useMutation } from '@apollo/client';
-import { REGISTRATION_VERIFY_CODE_MUTATION } from '@/graphql/mutations/registration';
+import React, { useCallback, useEffect, useState } from 'react';
 import { config } from '@/config/smsCode/config';
 import { formatTime } from '@/utils/time';
-import { saveNewTokens } from '@/utils/saveNewTokens';
 import { throttle } from '@/utils/throttle';
 import { FormLoader } from '@/components/common/FormLoader/FormLoader';
+import { apiPaths } from '@/config/api';
+import { IForm } from '@/components/unique/SMSVerificationForm/types';
+import ArrowButton from '@/components/common/ArrowButton/ArrowButton';
 
-export default function SMSVerificationForm({
-	number,
-	region,
-	dataSubmit,
-	initialTimestampAfterTimeout,
-}: {
-	number: string;
-	region: string;
-	dataSubmit: () => void;
-	initialTimestampAfterTimeout: number;
-}) {
+export default function SMSVerificationForm(props: IForm) {
+	const {
+		number,
+		region,
+		dataSubmit,
+		initialTimestampAfterTimeout,
+		submitRequestStatus,
+		customTitle,
+		type = 'registration',
+		setStage,
+		setCodeUp = () => {},
+	} = props;
+
 	const router = useRouter();
 	const { t } = useTranslation();
-	const formattedNumber = formatPhoneNumber(number, region);
+	const formattedNumber =
+		type === 'registration' ? formatPhoneNumber(number, region) : null;
 	const [code, setCode] = useState('');
-	const [verifyPhone, requestVerifyPhoneStatus] = useMutation(
-		REGISTRATION_VERIFY_CODE_MUTATION
-	);
 	const [buttonDisabled, setButtonDisabled] = useState(true);
+	const [requestVerifyStatus, setRequestVerifyStatus] = useState<any>();
+	const [loading, setLoading] = useState(false);
 	const [sendsData, setSendsData] = useState({
 		lastSend: Date.now(),
 		nextResendTimestamp: initialTimestampAfterTimeout,
@@ -73,44 +75,63 @@ export default function SMSVerificationForm({
 		setButtonDisabled(code.length < config.codeLength);
 	}, [code]);
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const throttledHandle = useCallback(
 		throttle(async () => {
 			try {
-				const response = await verifyPhone({
-					variables: {
-						region: region,
-						phoneNumber: formatPhoneNumber(number, region),
-						code: code,
-					},
-				});
-				const tokens = response?.data?.verifyPhoneNumber;
-				saveNewTokens(tokens);
-				router.push('/dashboard');
+				setLoading(true);
+				if (type === 'registration') {
+					const response = await apiPaths.registration.checkCode(
+						code,
+						formatPhoneNumber(number, region),
+						region
+					);
+					setRequestVerifyStatus(response.data);
+					if (!response.data?.error) {
+						router.push('/profile');
+					}
+				} else if (type === 'resetPassword') {
+					const response = await apiPaths.resetPassword.checkCode(
+						code,
+						submitRequestStatus.id
+					);
+					setRequestVerifyStatus(response.data);
+					if (!response.data.error) {
+						setCodeUp(code);
+						setStage(2);
+					}
+				}
 			} catch (e) {
-				console.error(e);
+				// @ts-ignore
+				setRequestVerifyStatus(e?.response?.data);
 			}
+			setLoading(false);
 		}, 1000),
 		[region, number, code]
 	);
 
 	const errorRender = () => {
-		if (!requestVerifyPhoneStatus.error) {
+		if (
+			!requestVerifyStatus?.error &&
+			!submitRequestStatus?.error &&
+			!requestVerifyStatus?.error
+		) {
 			return null;
 		}
-		let translationKey: string;
-		const errorMessage = requestVerifyPhoneStatus?.error?.message;
+		let translationKey = 'codeMainError';
+		const errorMessage = requestVerifyStatus?.code;
+		const errorRequest = submitRequestStatus?.error?.code;
 
-		if (errorMessage?.includes('-07-')) {
-			translationKey = 'expiredCode';
-		} else if (errorMessage?.includes('-09-')) {
+		if (errorMessage?.includes('03')) {
 			translationKey = 'wrongCode';
-		} else {
-			translationKey = 'codeMainError';
+		}
+
+		if (errorRequest?.includes('02')) {
+			translationKey = 'errorRequestingNewCode';
 		}
 
 		return <p className={styles.error}>{t(translationKey)}</p>;
 	};
-
 	return (
 		<form
 			className={styles.mainContainer}
@@ -121,17 +142,29 @@ export default function SMSVerificationForm({
 				throttledHandle();
 			}}
 		>
-			<FormLoader loading={requestVerifyPhoneStatus.loading} />
-			<h1 className={styles.title}>{t('numberVerificationTitle')}</h1>
+			<ArrowButton
+				onClick={() =>
+					setStage((prev: number) => {
+						return Math.max(prev - 1, 0);
+					})
+				}
+			/>
+			<FormLoader loading={loading} />
+			<h1 className={styles.title}>
+				{customTitle ? customTitle : t('numberVerificationTitle')}
+			</h1>
+
 			<div className={styles.subTitleContainer}>
-				<p>{t('codeSentToNumber')}:</p>
-				<p className={styles.phone}>{formattedNumber}</p>
+				<p>{t('codeSentTo')}:</p>
+				<p className={styles.phone}>{formattedNumber || number}</p>
 			</div>
+
 			<div className={styles.smsContainer}>
 				<SMSInput
 					codeLength={config.codeLength}
 					code={code}
 					setCode={setCode}
+					isError={requestVerifyStatus?.error}
 				/>
 			</div>
 			{errorRender()}
